@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login de Usuario</title>
+    <link rel="stylesheet" href="/styles/loginUsuarioStyle.css">
+</head>
+
+<body>
+    <div class="card">
+        <h1>Login de Usuario</h1>
+
+        <form action="/login-usuario" method="POST">
+            <div class="field">
+                <label for="nome">Nome</label>
+                <input type="text" id="nome" name="nome" placeholder="Informe o nome" required>
+            </div>
+
+            <div class="field">
+                <label for="email">E-mail</label>
+                <input type="email" id="email" name="email" placeholder="Informe o e-mail" required>
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="btn-primary">LOGIN</button>
+                <button type="button" class="btn-secondary" onclick="window.location.href='/'">Ir para Cadastro</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

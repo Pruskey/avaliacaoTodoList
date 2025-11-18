@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Tarefa</title>
+    <link rel="stylesheet" href="/styles/cadastroTarefaStyle.css">
+</head>
+<body>
+    <div class="card">
+        <h1>Cadastro de Tarefa</h1>
+
+        <form action="/adicionar-tarefa" method="POST">
+            <div class="field">
+                <label for="descricao">Descrição</label>
+                <input type="text" id="descricao" name="descricao" required>
+            </div>
+
+            <input type="hidden" id="id_usuario" name="id_usuario">
+
+            <div class="field">
+                <label for="setor">Setor</label>
+                <input type="text" id="setor" name="setor" required>
+            </div>
+
+            <div class="field">
+                <label for="prioridade">Prioridade</label>
+                <select id="prioridade" name="prioridade" required>
+                    <option value="">Selecione...</option>
+                    <option value="Baixa">Baixa</option>
+                    <option value="Média">Média</option>
+                    <option value="Alta">Alta</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="data">Data</label>
+                <input type="date" id="data" name="data" required>
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="btn-primary">Salvar Tarefa</button>
+            </div>
+        </form>
+    </div>
+    <script>
+        (function () {
+            const params = new URLSearchParams(window.location.search);
+            const idUsuario = params.get('id_usuario');
+
+            if (!idUsuario) {
+                alert('Usuário não informado. Faça login novamente.');
+                window.location.href = '/loginUsuario';
+                return;
+            }
+
+            document.getElementById('id_usuario').value = idUsuario;
+        })();
+    </script>
+</body>
+</html>
