@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Tarefa</title>
+    <link rel="stylesheet" href="/styles/cadastroTarefaStyle.css">
+</head>
+<body>
+    <div class="card">
+        <h1>Editar Tarefa</h1>
+
+        <form action="/atualizar-tarefa" method="POST">
+            <input type="hidden" id="id_tarefa" name="id_tarefa">
+            <input type="hidden" id="id_usuario" name="id_usuario">
+
+            <div class="field">
+                <label for="descricao">Descrição</label>
+                <input type="text" id="descricao" name="descricao" required>
+            </div>
+
+            <div class="field">
+                <label for="setor">Setor</label>
+                <input type="text" id="setor" name="setor" required>
+            </div>
+
+            <div class="field">
+                <label for="prioridade">Prioridade</label>
+                <select id="prioridade" name="prioridade" required>
+                    <option value="">Selecione...</option>
+                    <option value="Baixa">Baixa</option>
+                    <option value="Média">Média</option>
+                    <option value="Alta">Alta</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="data">Data</label>
+                <input type="date" id="data" name="data" required>
+            </div>
+
+            <div class="field">
+                <label for="status">Status</label>
+                <select id="status" name="status" required>
+                    <option value="Pendente">Pendente</option>
+                    <option value="Em andamento">Em andamento</option>
+                    <option value="Concluída">Concluída</option>
+                </select>
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="btn-primary">Salvar Alterações</button>
+                <button type="button" id="btn-excluir" class="btn-secondary">Excluir Tarefa</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        (function () {
+            const params = new URLSearchParams(window.location.search);
+            const idTarefa = params.get('id_tarefa');
+            const idUsuario = params.get('id_usuario');
+
+            if (!idTarefa || !idUsuario) {
+                alert('Parâmetros inválidos.');
+                window.close();
+                return;
+            }
+
+            document.getElementById('id_tarefa').value = idTarefa;
+            document.getElementById('id_usuario').value = idUsuario;
+
+            fetch(`/tarefa/${encodeURIComponent(idTarefa)}?id_usuario=${encodeURIComponent(idUsuario)}`)
+                .then(function (res) {
+                    if (!res.ok) {
+                        if (res.status === 403) {
+                            alert('Você não tem permissão para editar esta tarefa.');
+                        } else {
+                            alert('Erro ao carregar tarefa.');
+                        }
+                        window.close();
+                        return null;
+                    }
+                    return res.json();
+                })
+                .then(function (tarefa) {
+                    if (!tarefa) return;
+
+                    document.getElementById('descricao').value = tarefa.descricao;
+                    document.getElementById('setor').value = tarefa.setor;
+                    document.getElementById('prioridade').value = tarefa.prioridade;
+                    document.getElementById('data').value = tarefa.data;
+                    document.getElementById('status').value = tarefa.status;
+                })
+                .catch(function () {
+                    alert('Erro ao carregar tarefa.');
+                    window.close();
+                });
+
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function (event) {
+                    event.preventDefault();
+
+                    const formData = new FormData(form);
+                    const body = new URLSearchParams();
+                    formData.forEach(function (value, key) {
+                        body.append(key, value);
+                    });
+
+                    fetch('/atualizar-tarefa', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: body.toString()
+                    })
+                        .then(function (res) {
+                            if (!res.ok) {
+                                alert('Erro ao salvar a tarefa.');
+                                throw new Error('Erro ao salvar a tarefa');
+                            }
+
+                            if (window.opener && !window.opener.closed) {
+                                try {
+                                    window.opener.location.reload();
+                                } catch (e) {
+                                }
+                            }
+
+                            window.close();
+                        })
+                        .catch(function () {
+                        });
+                });
+            }
+
+            const btnExcluir = document.getElementById('btn-excluir');
+            if (btnExcluir) {
+                btnExcluir.addEventListener('click', function () {
+                    if (!confirm('Tem certeza que deseja excluir esta tarefa?')) {
+                        return;
+                    }
+
+                    const idTarefa = document.getElementById('id_tarefa').value;
+                    const idUsuario = document.getElementById('id_usuario').value;
+
+                    const body = new URLSearchParams();
+                    body.append('id_tarefa', idTarefa);
+                    body.append('id_usuario', idUsuario);
+
+                    fetch('/deletar-tarefa', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: body.toString()
+                    })
+                        .then(function (res) {
+                            if (!res.ok) {
+                                alert('Erro ao excluir a tarefa.');
+                                throw new Error('Erro ao excluir a tarefa');
+                            }
+
+                            if (window.opener && !window.opener.closed) {
+                                try {
+                                    window.opener.location.reload();
+                                } catch (e) {
+                                }
+                            }
+
+                            window.close();
+                        })
+                        .catch(function () {
+                        });
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

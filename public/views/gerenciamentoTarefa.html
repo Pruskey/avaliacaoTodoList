@@ -4,8 +4,189 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerenciamento de Tarefas</title>
+    <link rel="stylesheet" href="/styles/gerenciamentoTarefaStyle.css">
 </head>
 <body>
-    
+    <div class="card">
+        <div class="top-actions">
+            <div class="top-actions-left">
+                <button type="button" id="btn-ir-cadastro-usuario">Cadastro de Usuário</button>
+                <button type="button" id="btn-ir-login">Login</button>
+            </div>
+            <div class="top-actions-right">
+                <span id="usuario-logado-label">Usuário:</span>
+                <span id="usuario-logado-nome">Carregando...</span>
+            </div>
+        </div>
+        <h1>Gerenciamento de Tarefas</h1>
+
+        <div class="table-wrapper">
+            <table id="tabela-tarefas">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Descrição</th>
+                        <th>Setor</th>
+                        <th>Prioridade</th>
+                        <th>Data</th>
+                        <th>Status</th>
+                        <th>Usuário</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+        <div class="actions">
+            <button type="button" id="btn-nova-tarefa">Nova Tarefa</button>
+        </div>
+    </div>
+
+    <script>
+        let idUsuarioAtual = null;
+
+        async function carregarUsuarioLogado() {
+            const spanUsuarioLogadoNome = document.getElementById('usuario-logado-nome');
+
+            try {
+                const resposta = await fetch(`/usuario/${encodeURIComponent(idUsuarioAtual)}`);
+
+                if (!resposta.ok) {
+                    throw new Error('Erro ao carregar usuário');
+                }
+
+                const usuario = await resposta.json();
+
+                if (spanUsuarioLogadoNome) {
+                    spanUsuarioLogadoNome.textContent = usuario.nome || '-';
+                }
+            } catch (erro) {
+                console.error(erro);
+                if (spanUsuarioLogadoNome) {
+                    spanUsuarioLogadoNome.textContent = '-';
+                }
+            }
+        }
+
+        async function carregarTarefas() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                idUsuarioAtual = params.get('id_usuario');
+
+                if (!idUsuarioAtual) {
+                    alert('Usuário não informado. Faça login novamente.');
+                    window.location.href = '/loginUsuario';
+                    return;
+                }
+
+                await carregarUsuarioLogado();
+
+                const resposta = await fetch('/tarefa');
+
+                if (!resposta.ok) {
+                    throw new Error('Erro ao carregar tarefas');
+                }
+
+                const tarefas = await resposta.json();
+                const tbody = document.querySelector('#tabela-tarefas tbody');
+                tbody.innerHTML = '';
+
+                if (!tarefas.length) {
+                    const tr = document.createElement('tr');
+                    const td = document.createElement('td');
+                    td.colSpan = 8;
+                    td.textContent = 'Nenhuma tarefa cadastrada.';
+                    tbody.appendChild(tr);
+                    tr.appendChild(td);
+
+                    return;
+                }
+
+                tarefas.forEach(tarefa => {
+                    const tr = document.createElement('tr');
+
+                    const tdId = document.createElement('td');
+                    tdId.textContent = tarefa.id_tarefa;
+                    tr.appendChild(tdId);
+
+                    const tdDesc = document.createElement('td');
+                    tdDesc.textContent = tarefa.descricao;
+                    tr.appendChild(tdDesc);
+
+                    const tdSetor = document.createElement('td');
+                    tdSetor.textContent = tarefa.setor;
+                    tr.appendChild(tdSetor);
+
+                    const tdPrioridade = document.createElement('td');
+                    tdPrioridade.textContent = tarefa.prioridade;
+                    tr.appendChild(tdPrioridade);
+
+                    const tdData = document.createElement('td');
+                    tdData.textContent = tarefa.data;
+                    tr.appendChild(tdData);
+
+                    const tdStatus = document.createElement('td');
+                    const spanStatus = document.createElement('span');
+                    spanStatus.textContent = tarefa.status;
+                    const classeStatus = 'status-' + (tarefa.status || '').replace(' ', '\\ ');
+                    spanStatus.className = 'status-pill ' + classeStatus;
+                    tdStatus.appendChild(spanStatus);
+                    tr.appendChild(tdStatus);
+
+                    const tdUsuario = document.createElement('td');
+                    tdUsuario.textContent = tarefa.usuario_nome || '-';
+                    tr.appendChild(tdUsuario);
+
+                    const tdAcoes = document.createElement('td');
+                    if (String(tarefa.id_usuario) === String(idUsuarioAtual)) {
+                        const btnEditar = document.createElement('button');
+                        btnEditar.type = 'button';
+                        btnEditar.textContent = 'Editar';
+                        btnEditar.addEventListener('click', function () {
+                            const url = `/editarTarefa?id_tarefa=${encodeURIComponent(tarefa.id_tarefa)}&id_usuario=${encodeURIComponent(idUsuarioAtual)}`;
+                            window.open(url, '_blank');
+                        });
+                        tdAcoes.appendChild(btnEditar);
+                    } else {
+                        tdAcoes.textContent = '-';
+                    }
+                    tr.appendChild(tdAcoes);
+
+                    tbody.appendChild(tr);
+                });
+
+            } catch (erro) {
+                console.error(erro);
+                alert('Erro ao carregar tarefas.');
+            }
+        }
+
+        carregarTarefas();
+
+        document.getElementById('btn-nova-tarefa').addEventListener('click', function () {
+            if (!idUsuarioAtual) {
+                alert('Usuário não informado. Faça login novamente.');
+                window.location.href = '/loginUsuario';
+                return;
+            }
+
+            window.location.href = `/cadastroTarefa?id_usuario=${encodeURIComponent(idUsuarioAtual)}`;
+        });
+
+        const btnIrCadastroUsuario = document.getElementById('btn-ir-cadastro-usuario');
+        if (btnIrCadastroUsuario) {
+            btnIrCadastroUsuario.addEventListener('click', function () {
+                window.location.href = '/';
+            });
+        }
+
+        const btnIrLogin = document.getElementById('btn-ir-login');
+        if (btnIrLogin) {
+            btnIrLogin.addEventListener('click', function () {
+                window.location.href = '/loginUsuario';
+            });
+        }
+    </script>
 </body>
 </html>

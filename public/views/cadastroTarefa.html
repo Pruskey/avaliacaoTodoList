@@ -39,6 +39,7 @@
             </div>
 
             <div class="actions">
+                <button type="button" id="btn-voltar">Voltar</button>
                 <button type="submit" class="btn-primary">Salvar Tarefa</button>
             </div>
         </form>
@@ -55,6 +56,13 @@
             }
 
             document.getElementById('id_usuario').value = idUsuario;
+
+            const btnVoltar = document.getElementById('btn-voltar');
+            if (btnVoltar) {
+                btnVoltar.addEventListener('click', function () {
+                    window.location.href = `/gerenciamentoTarefa?id_usuario=${encodeURIComponent(idUsuario)}`;
+                });
+            }
         })();
     </script>
 </body>
